@@ -1,0 +1,10 @@
+/device_command/on	->	
+
+/device_command/off	->
+
+/device_command/vol_up	->
+
+/device_command/vol_down	->
+
+/device_command		->	status
+

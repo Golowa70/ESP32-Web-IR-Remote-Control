@@ -4,8 +4,9 @@
 #include <SPI.h>
 #include <TFT_eSPI.h>
 #include "PinDefinitionsAndMore.h" // Define macros for input and output pin etc.
-// #include <Preferences.h>
 #include <IRremote.hpp>
+#include "IR_commands_defination.h"
+// #include <Preferences.h>
 
 #define DECODE_NEC // Includes Apple and Onkyo
 #define DELAY_AFTER_SEND 50
@@ -21,7 +22,6 @@
 #endif
 
 #define MARK_EXCESS_MICROS 20 // Adapt it to your IR receiver module. 20 is recommended for the cheap VS1838 modules.
-
 // #define DEBUG // Activate this for lots of lovely debug output from the decoders.
 
 const char *ssid = "Yurid_h";        // replace
@@ -33,22 +33,28 @@ TFT_eSPI tft = TFT_eSPI();
 
 int relayPin = 38;
 
-int SEND_BUTTON_PIN = 0; // APPLICATION_PIN
-int DELAY_BETWEEN_REPEAT = 50;
-uint16_t sAddress = 0x7080;
-uint8_t sCommand_VOL_UP = 0xC7;
-uint8_t sCommand_VOL_DOWN = 0xC8;
-uint16_t s16BitCommand = 0x5634;
+const int8_t SEND_BUTTON_PIN = 0; // APPLICATION_PIN
+const int DELAY_BETWEEN_REPEAT = 50;
 uint8_t sRepeats = 0;
 
+const int lcdPwmFreq = 5000;
+const int lcdPwmChannel = 1; // 0 work with ttgo configuration
+const int lcdPwmResolution = 8;
+
 void sender();
+void tftClearString();
+void deviceCommmandHandler(struct Command commands_set[], int key);
 
 void setup()
 {
   pinMode(SEND_BUTTON_PIN, INPUT_PULLUP);
 
-  pinMode(relayPin, OUTPUT);
-  digitalWrite(relayPin, HIGH);
+  // pinMode(relayPin, OUTPUT);
+  // digitalWrite(relayPin, HIGH);
+
+  ledcSetup(lcdPwmChannel, lcdPwmFreq, lcdPwmResolution);
+  ledcAttachPin(4, lcdPwmChannel);
+  ledcWrite(lcdPwmChannel, 100);
 
   tft.init();
   tft.setRotation(3);
@@ -56,9 +62,7 @@ void setup()
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
 
   Serial.begin(115200);
-#if defined(__AVR_ATmega32U4__) || defined(SERIAL_PORT_USBVIRTUAL) || defined(SERIAL_USB) /*stm32duino*/ || defined(USBCON) /*STM32_stm32*/ || defined(SERIALUSB_PID) || defined(ARDUINO_attiny3217)
   delay(4000); // To be able to connect Serial monitor after reset or power up and before first print out. Do not wait for an attached Serial Monitor!
-#endif
 
   IrSender.begin(); // Start with IR_SEND_PIN as send pin and enable feedback LED at default feedback LED pin
   // IrSender.enableIROut(38);
@@ -76,41 +80,55 @@ void setup()
 
   Serial.println(WiFi.localIP());
   tft.fillScreen(TFT_BLACK);
-  tft.drawString(WiFi.localIP().toString(), 40, 40, 4); //
+  tft.drawString("Connected to " + WiFi.localIP().toString(), 20, 10, 2); //
 
   server.on("/hello", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send(200, "text/plain", "Hello World"); });
 
-  server.on("/relay/off", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-    request->send(200, "text/plain", "ok");
-    // digitalWrite(relayPin, HIGH);
-    tft.fillScreen(TFT_BLACK);
-    tft.drawString("Relay  OFF", 40, 40, 4); //
-    Serial.println("Relay  OFF");
-    IrSender.sendNEC(sAddress, sCommand_VOL_DOWN, sRepeats);
-    delay(DELAY_AFTER_SEND); });
-  server.on("/relay/on", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-    request->send(200, "text/plain","ok");
-    // digitalWrite(relayPin, LOW);
-    tft.fillScreen(TFT_BLACK);
-    tft.drawString("Relay  ON", 40, 40, 4); //
-    Serial.println("Relay  ON");
-    IrSender.sendNEC(sAddress, sCommand_VOL_UP, sRepeats);
-    delay(DELAY_AFTER_SEND); });
-
-  server.on("/relay/toggle", HTTP_GET, [](AsyncWebServerRequest *request)
+  server.on("/device_command/off", HTTP_GET, [](AsyncWebServerRequest *request)
             {
               request->send(200, "text/plain", "ok");
-              // digitalWrite(relayPin, !digitalRead(relayPin));
-            });
+              deviceCommmandHandler(avr161_commands_set, ON);
 
-  server.on("/relay", HTTP_GET, [](AsyncWebServerRequest *request)
+              // tft.drawString(keyOff.name + " >>>", 20, 60, 4); //
+              // Serial.println("Key OFF");
+              // IrSender.sendNEC(keyOff.address, keyOff.command, sRepeats);
+              // delay(DELAY_AFTER_SEND);
+              // tftClearString();
+            });
+  server.on("/device_command/on", HTTP_GET, [](AsyncWebServerRequest *request)
+            {
+              request->send(200, "text/plain", "ok");
+              tft.drawString(keyOn.name + " >>>", 20, 60, 4); //
+              Serial.println("Key ON");
+              IrSender.sendNEC(keyOn.address, keyOn.command, sRepeats);
+              delay(DELAY_AFTER_SEND);
+              tftClearString(); });
+
+  server.on("/device_command/vol_up", HTTP_GET, [](AsyncWebServerRequest *request)
+            {
+              request->send(200, "text/plain", "ok");
+              tft.drawString(keyVolUp.name + " >>>", 20, 60, 4); //
+              Serial.println("Key VOL UP");
+              IrSender.sendNEC(keyVolUp.address, keyVolUp.command, sRepeats);
+              delay(DELAY_AFTER_SEND);
+              tftClearString(); });
+  server.on("/device_command/vol_down", HTTP_GET, [](AsyncWebServerRequest *request)
+            {
+              request->send(200, "text/plain", "ok");
+              tft.drawString(keyVolDown.name + " >>>", 40, 60, 4); //
+              Serial.println("Key VOL DOWN");
+              IrSender.sendNEC(keyVolDown.address, keyVolDown.command, sRepeats);
+              delay(DELAY_AFTER_SEND);
+              tftClearString(); });
+
+  server.on("/device_command/toggle", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(200, "text/plain", "ok"); });
+
+  server.on("/device_command", HTTP_GET, [](AsyncWebServerRequest *request)
             {
               request->send(200, "text/plain", String(digitalRead(relayPin)));
-              tft.drawString(WiFi.localIP().toString(), 40, 40, 4); //
-            });
+              tftClearString(); });
 
   server.begin();
 }
@@ -122,15 +140,20 @@ void loop()
 
   if (tSendButtonIsActive)
   {
-    sender();
+    //
   }
 }
 
-void sender()
+void tftClearString()
 {
-  Serial.println(F("Send NEC with 16 bit address"));
-  Serial.flush();
-  // IrSender.sendNEC(sAddress & 0xFF, sCommand_1, sRepeats);
-  IrSender.sendNEC(sAddress, sCommand_VOL_DOWN, sRepeats);
-  delay(DELAY_AFTER_SEND); // delay must be greater than 5 ms (RECORD_GAP_MICROS), otherwise the receiver sees it as one long signal
+  tft.drawString("                                        ", 20, 60, 4); //
+}
+
+void deviceCommmandHandler(struct Command *commands_set[], int key)
+{
+  tft.drawString(commands_set[key].name + " >>>", 40, 60, 4); //
+  Serial.println("Key " + commands_set[key].name + " pressed");
+  IrSender.sendNEC(commands_set[key].address, commands_set[key].command, sRepeats);
+  delay(DELAY_AFTER_SEND);
+  tftClearString();
 }
