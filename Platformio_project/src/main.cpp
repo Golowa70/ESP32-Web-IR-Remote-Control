@@ -43,7 +43,7 @@ const int lcdPwmResolution = 8;
 
 void sender();
 void tftClearString();
-void deviceCommmandHandler(struct Command commands_set[], int key);
+void deviceCommmandHandler(Command commands_set[], int setLength, int key);
 
 void setup()
 {
@@ -88,7 +88,8 @@ void setup()
   server.on("/device_command/off", HTTP_GET, [](AsyncWebServerRequest *request)
             {
               request->send(200, "text/plain", "ok");
-              deviceCommmandHandler(avr161_commands_set, ON);
+              int size = sizeof(avr161_commands_set) / sizeof(Command);
+              deviceCommmandHandler(avr161_commands_set, size, ON);
 
               // tft.drawString(keyOff.name + " >>>", 20, 60, 4); //
               // Serial.println("Key OFF");
@@ -149,7 +150,7 @@ void tftClearString()
   tft.drawString("                                        ", 20, 60, 4); //
 }
 
-void deviceCommmandHandler(struct Command *commands_set[], int key)
+void deviceCommmandHandler(Command commands_set[], int length, int key)
 {
   tft.drawString(commands_set[key].name + " >>>", 40, 60, 4); //
   Serial.println("Key " + commands_set[key].name + " pressed");
