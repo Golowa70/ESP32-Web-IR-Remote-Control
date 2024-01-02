@@ -6,7 +6,7 @@
 #include "PinDefinitionsAndMore.h" // Define macros for input and output pin etc.
 #include <IRremote.hpp>
 #include "IR_commands_defination.h"
-#include <Preferences.h>
+//#include <Preferences.h>
 
 #define DECODE_NEC // Includes Apple and Onkyo
 #define DELAY_AFTER_SEND 50
