@@ -6,7 +6,7 @@
 #include "PinDefinitionsAndMore.h" // Define macros for input and output pin etc.
 #include <IRremote.hpp>
 #include "IR_commands_defination.h"
-//#include <Preferences.h>
+// #include <Preferences.h>
 
 #define DECODE_NEC // Includes Apple and Onkyo
 #define DELAY_AFTER_SEND 50
@@ -40,8 +40,8 @@ uint8_t sRepeats = 0;
 const int lcdPwmFreq = 5000;
 const int lcdPwmChannel = 1; // 0 work with ttgo configuration
 const int lcdPwmResolution = 8;
+// Command current_commands_set[] = null;
 
-void sender();
 void tftClearString();
 void deviceCommmandHandler(Command commands_set[], int setLength, int key);
 

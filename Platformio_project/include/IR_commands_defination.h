@@ -4,7 +4,7 @@
 #define ON 0
 #define OFF 1
 #define MUTE 2
-#define CABLE / SAT 3
+#define CABLE_SAT 3
 #define STB 4
 #define TV 5
 #define DISC 6
@@ -17,7 +17,7 @@
 #define NETWORK 13
 #define RADIO 14
 #define SURR_MODE 15
-#define OSD / MENU 16
+#define OSD_MENU 16
 #define UP 17
 #define LEFT 18
 #define OK 19
@@ -41,22 +41,22 @@
 #define VOL_DOWN 37
 #define DELAY 38
 #define SLEEP 39
-#define CH / TUNER_UP 40
-#define CH / TUNER_DOWN 41
+#define CH_TUNER_UP 40
+#define CH_TUNER_DOWN 41
 #define INFO 42
 #define DIM 43
-#define P -SCAN 44
+#define P_SCAN 44
 #define DIRECT 45
 #define MEM 46
 #define RDS 47
-#define _ | < 48
-#define _ << 49
-#define _ >> 50
-#define _ > | 51
+#define PREV 48
+#define REW 49
+#define FORW 50
+#define NEXT 51
 #define STOP 52
 #define PLAY 53
 #define PAUSE 54
-#define PREV .CH 55
+#define PREV_CH 55
 
 struct Command
 {
@@ -116,11 +116,11 @@ Command keyClear = {"Clear", 0x7282, 0xD9};
 Command key9 = {"9", 0x7080, 0x9D};
 Command key0 = {"0", 0x7080, 0x9E};
 Command keyTest = {"Test", 0x7282, 0x8C};
-Command keyVol_UP = {"Vol_UP", 0x7080, 0xC7};
-Command keyVol_DOWN = {"Vol_DOWN", 0x7080, 0xC8};
+Command keyVolUp = {"Vol_UP", 0x7080, 0xC7};
+Command keyVolDown = {"Vol_DOWN", 0x7080, 0xC8};
 Command keyDelay = {"Delay", 0x7080, 0x52};
 Command keySleep = {"Sleep", 0x7080, 0xDB};
-Command keyChTuner _UP = {"Ch/Tuner _UP", 0x7080, 0x84};
+Command keyChTuner_UP = {"Ch/Tuner _UP", 0x7080, 0x84};
 Command keyChTuner_DOWN = {"Ch/Tuner_DOWN", 0x7080, 0x85};
 Command keyInfo = {"Info", 0x7080, 0xB8};
 Command keyDIM = {"DIM", 0x7080, 0xDC};
@@ -132,11 +132,67 @@ Command keyPrev = {"Prev", 0x7484, 0x55};
 Command keyRew = {"Rew", 0x7484, 0xDA};
 Command keyForw = {"Forw", 0x7484, 0xDB};
 Command keyNext = {"Next", 0x7484, 0x56};
-Command key Stop = {" Stop", 0x7484, 0xEA};
+Command keyStop = {" Stop", 0x7484, 0xEA};
 Command keyPlay = {"Play", 0x7484, 0xDE};
 Command keyPause = {"Pause", 0x7484, 0xDF};
 Command keyPrevCH = {"PrevCH", 0x7282, 0x5D};
 
-Command avr161_commands_set[] = {keyOn, keyOff, keyVolUp, keyVolDown};
+Command avr161_commands_set[] = {
+    keyOn,
+    keyOff,
+    keyMute,
+    keyCableSat,
+    keySTB,
+    keyTV,
+    keyDisc,
+    keyMHL,
+    keyAux,
+    keyAudio,
+    keyGame,
+    keyAVR,
+    keyUSB,
+    keyNetwork,
+    keyRadio,
+    keySurrMode,
+    keyOSDMenu,
+    keyUP,
+    keyLEFT,
+    keyOK,
+    keyRIGHT,
+    keyDOWN,
+    keyBackExit,
+    keyHome,
+    key1,
+    key2,
+    key3,
+    key4,
+    key5,
+    key6,
+    key7,
+    key8,
+    keyClear,
+    key9,
+    key0,
+    keyTest,
+    keyVolUp,
+    keyVolDown,
+    keyDelay,
+    keySleep,
+    keyChTuner_UP,
+    keyChTuner_DOWN,
+    keyInfo,
+    keyDIM,
+    keyPScan,
+    keyDirect,
+    keyMEM,
+    keyRDS,
+    keyPrev,
+    keyRew,
+    keyForw,
+    keyNext,
+    keyStop,
+    keyPlay,
+    keyPause,
+    keyPrevCH};
 
 #endif
