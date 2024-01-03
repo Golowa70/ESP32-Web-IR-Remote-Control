@@ -24,8 +24,8 @@
 #define MARK_EXCESS_MICROS 20 // Adapt it to your IR receiver module. 20 is recommended for the cheap VS1838 modules.
 // #define DEBUG // Activate this for lots of lovely debug output from the decoders.
 
-const char *ssid = "Yurid_h";        // replace
-const char *password = "0538777185"; // replace
+const char* ssid = "Yurid_h";        // replace
+const char* password = "0538777185"; // replace
 
 AsyncWebServer server(80);
 // Preferences prefs;
@@ -40,10 +40,9 @@ uint8_t sRepeats = 0;
 const int lcdPwmFreq = 5000;
 const int lcdPwmChannel = 1; // 0 work with ttgo configuration
 const int lcdPwmResolution = 8;
-// Command current_commands_set[] = null;
 
 void tftClearString();
-void deviceCommmandHandler(Command commands_set[], int setLength, int key);
+void deviceCommmandHandler(Command commands_set[], int setLength, String key);
 
 void setup()
 {
@@ -62,7 +61,7 @@ void setup()
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
 
   Serial.begin(115200);
-  delay(4000); // To be able to connect Serial monitor after reset or power up and before first print out. Do not wait for an attached Serial Monitor!
+  delay(3000); // To be able to connect Serial monitor after reset or power up and before first print out. Do not wait for an attached Serial Monitor!
 
   IrSender.begin(); // Start with IR_SEND_PIN as send pin and enable feedback LED at default feedback LED pin
   // IrSender.enableIROut(38);
@@ -82,79 +81,50 @@ void setup()
   tft.fillScreen(TFT_BLACK);
   tft.drawString("Connected to " + WiFi.localIP().toString(), 20, 10, 2); //
 
-  server.on("/hello", HTTP_GET, [](AsyncWebServerRequest *request)
-            { request->send(200, "text/plain", "Hello World"); });
+  server.on("/device_command", HTTP_GET, [](AsyncWebServerRequest* request) {
+    String message;
+    if (request->hasParam("command")) {
+      message = request->getParam("command")->value();
+    }
+    else {
+      message = "No message sent";
+    }
+    request->send(200, "text/plain", "Hello, GET: " + message);
+    // request->send(200, "text/plain", "ok");
+    int size = sizeof(avr161_commands_set) / sizeof(Command);
+    deviceCommmandHandler(avr161_commands_set, size, message);
+    });
 
-  server.on("/device_command/off", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-              request->send(200, "text/plain", "ok");
-              int size = sizeof(avr161_commands_set) / sizeof(Command);
-              deviceCommmandHandler(avr161_commands_set, size, ON);
-
-              // tft.drawString(keyOff.name + " >>>", 20, 60, 4); //
-              // Serial.println("Key OFF");
-              // IrSender.sendNEC(keyOff.address, keyOff.command, sRepeats);
-              // delay(DELAY_AFTER_SEND);
-              // tftClearString();
-            });
-  server.on("/device_command/on", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-              request->send(200, "text/plain", "ok");
-              tft.drawString(keyOn.name + " >>>", 20, 60, 4); //
-              Serial.println("Key ON");
-              IrSender.sendNEC(keyOn.address, keyOn.command, sRepeats);
-              delay(DELAY_AFTER_SEND);
-              tftClearString(); });
-
-  server.on("/device_command/vol_up", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-              request->send(200, "text/plain", "ok");
-              tft.drawString(keyVolUp.name + " >>>", 20, 60, 4); //
-              Serial.println("Key VOL UP");
-              IrSender.sendNEC(keyVolUp.address, keyVolUp.command, sRepeats);
-              delay(DELAY_AFTER_SEND);
-              tftClearString(); });
-  server.on("/device_command/vol_down", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-              request->send(200, "text/plain", "ok");
-              tft.drawString(keyVolDown.name + " >>>", 40, 60, 4); //
-              Serial.println("Key VOL DOWN");
-              IrSender.sendNEC(keyVolDown.address, keyVolDown.command, sRepeats);
-              delay(DELAY_AFTER_SEND);
-              tftClearString(); });
-
-  server.on("/device_command/toggle", HTTP_GET, [](AsyncWebServerRequest *request)
-            { request->send(200, "text/plain", "ok"); });
-
-  server.on("/device_command", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-              request->send(200, "text/plain", String(digitalRead(relayPin)));
-              tftClearString(); });
+  // server.on("/device", HTTP_GET, [](AsyncWebServerRequest* request) {
+  //   request->send(200, "text/plain", String(digitalRead(relayPin)));
+  //   tftClearString();
+  //   });
 
   server.begin();
 }
 
-void loop()
-{
+void loop() {
   // If button pressed, send the code.
   bool tSendButtonIsActive = (digitalRead(SEND_BUTTON_PIN) == LOW); // Button pin is active LOW
-
-  if (tSendButtonIsActive)
-  {
-    //
+  if (tSendButtonIsActive) {
+    //to-do
   }
 }
 
-void tftClearString()
-{
+void tftClearString() {
   tft.drawString("                                        ", 20, 60, 4); //
 }
 
-void deviceCommmandHandler(Command commands_set[], int length, int key)
-{
-  tft.drawString(commands_set[key].name + " >>>", 40, 60, 4); //
-  Serial.println("Key " + commands_set[key].name + " pressed");
-  IrSender.sendNEC(commands_set[key].address, commands_set[key].command, sRepeats);
-  delay(DELAY_AFTER_SEND);
-  tftClearString();
+
+void deviceCommmandHandler(Command commands_set[], int len, String key) {
+  for (int i = 0;i < len;i++) {
+    if (key == commands_set[i].name) {
+      tft.drawString(commands_set[i].name + " >>>", 40, 60, 4);
+      Serial.println("Key " + commands_set[i].name + " pressed");
+      IrSender.sendNEC(commands_set[i].address, commands_set[i].command, sRepeats);
+      delay(DELAY_AFTER_SEND);
+      tftClearString();
+      break;
+    }
+  }
 }
