@@ -471,6 +471,22 @@
     [
       "eff9f25b-fc22-435c-ba15-64107809273b",
       ""
+    ],
+    [
+      "0a1393a8-a333-4a3f-bbc7-b6d3ec8638e6",
+      "Trigger_IN"
+    ],
+    [
+      "cba3fea4-2094-46db-85f4-1c4959f03e64",
+      "IR_receiver_transmitter"
+    ],
+    [
+      "58246ba5-9f5d-4d6f-8d92-b28b4e7b3200",
+      "RS232_interface"
+    ],
+    [
+      "a93c2abc-9b09-4192-a8a5-adf6026f5f5f",
+      "MCU_ESP32"
     ]
   ],
   "text_variables": {}
